@@ -3,15 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-  <!-- إضافة اللوقو في التبويب -->
   <link rel="icon" href="logo.png" type="image/png">
-
   <title>منظّم وقت المذاكرة الذكي</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Tajawal', sans-serif;
+    }
+
     body {
+      display: flex;
+      flex-direction: column;
       transition: background-color 0.6s ease, color 0.6s ease;
+    }
+
+    main {
+      flex: 1;
     }
 
     .card, .form-control, .btn, .list-group-item {
@@ -86,11 +96,27 @@
       color: #fff !important;
       border-color: #444 !important;
     }
+
+    .footer {
+      background-color: #f8f9fa;
+      color: #333;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .bg-dark .footer {
+      background-color: #222;
+      color: #aaa;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
   </style>
 </head>
 <body class="bg-light text-dark">
 
-  <div class="container py-5">
+  <main class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">منظّم وقت المذاكرة الذكي</h1>
       <button id="toggleMode" class="btn btn-outline-secondary toggle-btn">الوضع الداكن</button>
@@ -116,13 +142,18 @@
       <div class="card-header bg-primary text-white">جدول المذاكرة</div>
       <ul id="scheduleList" class="list-group list-group-flush"></ul>
     </div>
-  </div>
+  </main>
+
+  <footer class="text-center py-3 border-top footer">
+    <small>© جميع الحقوق محفوظة لعبدالمجيد آل فايع</small>
+  </footer>
 
   <audio id="dingSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
   <audio id="modeSwitchSound" src="https://www.soundjay.com/button/beep-01a.mp3" preload="auto"></audio>
 
+  <!-- ✅ زر الواتساب بعد التعديل -->
   <a href="https://wa.me/966591703860" target="_blank" class="whatsapp-btn">
-    <span class="whatsapp-text">تواصل معي في حال وجود مشكلة</span>
+    <span class="whatsapp-text">الدعم الفني</span>
     💬
   </a>
 
@@ -135,6 +166,25 @@
     const dingSound = document.getElementById('dingSound');
     const modeSwitchSound = document.getElementById('modeSwitchSound');
 
+    // تحميل المهام من localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      storedTasks.forEach(task => addTaskToDOM(task.subject, task.time, task.date));
+    });
+
+    // حفظ المهام
+    function saveTasks() {
+      const tasks = [];
+      document.querySelectorAll('#scheduleList li').forEach(li => {
+        const subject = li.dataset.subject;
+        const time = li.dataset.time;
+        const date = li.dataset.date;
+        tasks.push({ subject, time, date });
+      });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // إضافة المهمة
     form.addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -146,51 +196,70 @@
       const subject = subjectInput.value.trim();
       let time = timeInput.value;
 
+      const now = new Date();
+      const date = now.toLocaleDateString('ar-EG');
+
       const [hours, minutes] = time.split(':');
       let hour = parseInt(hours);
       const ampm = hour >= 12 ? 'م' : 'ص';
       hour = hour % 12 || 12;
       time = `${hour}:${minutes} ${ampm}`;
 
-      const li = document.createElement('li');
-      li.className = 'list-group-item d-flex justify-content-between align-items-center fade-in';
-      li.innerHTML = `<span>مذاكرة <strong>${subject}</strong> في الساعة <strong>${time}</strong></span>
-                      <button class="btn btn-sm btn-danger">حذف</button>`;
+      addTaskToDOM(subject, time, date);
+      saveTasks();
 
-      li.querySelector('button').addEventListener('click', () => {
-        li.classList.add('fade-out');
-        setTimeout(() => li.remove(), 400);
-      });
-
-      scheduleList.appendChild(li);
       dingSound.play();
-
-      setTimeout(() => {
-        li.classList.add('show');
-      }, 10);
-
       form.reset();
       form.classList.remove('was-validated');
     });
+
+    function addTaskToDOM(subject, time, date) {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center fade-in';
+      li.dataset.subject = subject;
+      li.dataset.time = time;
+      li.dataset.date = date;
+
+      li.innerHTML = `
+        <span>
+          <strong>${subject}</strong> - ${time} (${date})
+        </span>
+        <div>
+          <button class="btn btn-sm btn-success me-2 done-btn">✓</button>
+          <button class="btn btn-sm btn-danger delete-btn">حذف</button>
+        </div>
+      `;
+
+      // حذف
+      li.querySelector('.delete-btn').addEventListener('click', () => {
+        li.classList.add('fade-out');
+        setTimeout(() => {
+          li.remove();
+          saveTasks();
+        }, 400);
+      });
+
+      // مكتملة
+      li.querySelector('.done-btn').addEventListener('click', () => {
+        li.querySelector('span').classList.toggle('completed');
+      });
+
+      scheduleList.appendChild(li);
+      setTimeout(() => {
+        li.classList.add('show');
+      }, 10);
+    }
 
     toggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('bg-light');
       document.body.classList.toggle('bg-dark');
       document.body.classList.toggle('text-dark');
       document.body.classList.toggle('text-white');
-
       modeSwitchSound.play();
-
-      if (document.body.classList.contains('bg-dark')) {
-        toggleBtn.textContent = 'الوضع الفاتح';
-      } else {
-        toggleBtn.textContent = 'الوضع الداكن';
-      }
+      toggleBtn.textContent = document.body.classList.contains('bg-dark') ? 'الوضع الفاتح' : 'الوضع الداكن';
     });
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
