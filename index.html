@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>منظّم مذاكرة الطلاب</title>
+
+  <!-- إضافة اللوقو في التبويب -->
+  <link rel="icon" href="logo.png" type="image/png">
+
+  <title>منظّم وقت المذاكرة الذكي</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -14,7 +18,6 @@
       transition: background-color 0.4s ease, color 0.4s ease, border 0.4s ease;
     }
 
-    /* تأثير الإضافة */
     .fade-in {
       opacity: 0;
       transform: translateY(10px);
@@ -26,7 +29,6 @@
       transform: translateY(0);
     }
 
-    /* تأثير الحذف */
     .fade-out {
       opacity: 0;
       transform: translateX(50px);
@@ -37,17 +39,63 @@
       font-size: 0.9rem;
       padding: 5px 10px;
     }
+
+    .whatsapp-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background-color: #25D366;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      font-size: 1.5rem;
+      z-index: 1050;
+      transition: transform 0.3s ease;
+    }
+
+    .whatsapp-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .whatsapp-text {
+      display: none;
+      font-size: 0.9rem;
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+
+    .whatsapp-btn:hover .whatsapp-text {
+      display: block;
+    }
+
+    .bg-dark .form-control {
+      background-color: #555 !important;
+      color: #fff !important;
+      border-color: #777 !important;
+    }
+
+    .bg-dark .form-control:focus {
+      background-color: #777 !important;
+      border-color: #aaa !important;
+      color: #fff !important;
+    }
+
+    .bg-dark .list-group-item {
+      background-color: #333 !important;
+      color: #fff !important;
+      border-color: #444 !important;
+    }
   </style>
 </head>
 <body class="bg-light text-dark">
 
   <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="mb-0">منظّم وقت المذاكرة</h1>
+      <h1 class="mb-0">منظّم وقت المذاكرة الذكي</h1>
       <button id="toggleMode" class="btn btn-outline-secondary toggle-btn">الوضع الداكن</button>
     </div>
 
-    <!-- نموذج لإضافة مادة وجدول مذاكرة -->
     <form id="studyForm" class="mb-4 needs-validation" novalidate>
       <div class="row g-3">
         <div class="col-md-4">
@@ -64,15 +112,19 @@
       </div>
     </form>
 
-    <!-- جدول المذاكرة -->
     <div class="card">
       <div class="card-header bg-primary text-white">جدول المذاكرة</div>
       <ul id="scheduleList" class="list-group list-group-flush"></ul>
     </div>
   </div>
 
-  <!-- عنصر الصوت -->
-  <audio id="dingSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+  <audio id="dingSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+  <audio id="modeSwitchSound" src="https://www.soundjay.com/button/beep-01a.mp3" preload="auto"></audio>
+
+  <a href="https://wa.me/966591703860" target="_blank" class="whatsapp-btn">
+    <span class="whatsapp-text">تواصل معي في حال وجود مشكلة</span>
+    💬
+  </a>
 
   <script>
     const form = document.getElementById('studyForm');
@@ -80,7 +132,8 @@
     const subjectInput = document.getElementById('subject');
     const timeInput = document.getElementById('time');
     const toggleBtn = document.getElementById('toggleMode');
-    const dingSound = document.getElementById('dingSound'); // عنصر الصوت
+    const dingSound = document.getElementById('dingSound');
+    const modeSwitchSound = document.getElementById('modeSwitchSound');
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -93,7 +146,6 @@
       const subject = subjectInput.value.trim();
       let time = timeInput.value;
 
-      // تحويل الوقت إلى نظام 12 ساعة
       const [hours, minutes] = time.split(':');
       let hour = parseInt(hours);
       const ampm = hour >= 12 ? 'م' : 'ص';
@@ -105,18 +157,14 @@
       li.innerHTML = `<span>مذاكرة <strong>${subject}</strong> في الساعة <strong>${time}</strong></span>
                       <button class="btn btn-sm btn-danger">حذف</button>`;
 
-      // زر الحذف
       li.querySelector('button').addEventListener('click', () => {
         li.classList.add('fade-out');
         setTimeout(() => li.remove(), 400);
       });
 
       scheduleList.appendChild(li);
+      dingSound.play();
 
-      // تشغيل الصوت عند إضافة مادة جديدة
-      dingSound.play(); // تشغيل الصوت
-
-      // لإظهار التأثير بعد الإضافة
       setTimeout(() => {
         li.classList.add('show');
       }, 10);
@@ -125,17 +173,24 @@
       form.classList.remove('was-validated');
     });
 
-    // تبديل الوضع الفاتح والداكن
     toggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('bg-light');
       document.body.classList.toggle('bg-dark');
       document.body.classList.toggle('text-dark');
       document.body.classList.toggle('text-white');
 
-      toggleBtn.textContent =
-        document.body.classList.contains('bg-dark') ? 'الوضع الفاتح' : 'الوضع الداكن';
+      modeSwitchSound.play();
+
+      if (document.body.classList.contains('bg-dark')) {
+        toggleBtn.textContent = 'الوضع الفاتح';
+      } else {
+        toggleBtn.textContent = 'الوضع الداكن';
+      }
     });
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 </body>
 </html>
