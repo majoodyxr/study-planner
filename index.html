@@ -37,14 +37,6 @@
       font-size: 0.9rem;
       padding: 5px 10px;
     }
-
-    /* التنبيه عند إضافة مادة */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1050;
-    }
   </style>
 </head>
 <body class="bg-light text-dark">
@@ -82,19 +74,6 @@
   <!-- عنصر الصوت -->
   <audio id="dingSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
-  <!-- Toast notification عند إضافة مادة جديدة -->
-  <div class="toast-container">
-    <div id="successToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <strong class="me-auto">نجاح</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        تم إضافة المادة بنجاح!
-      </div>
-    </div>
-  </div>
-
   <script>
     const form = document.getElementById('studyForm');
     const scheduleList = document.getElementById('scheduleList');
@@ -102,7 +81,6 @@
     const timeInput = document.getElementById('time');
     const toggleBtn = document.getElementById('toggleMode');
     const dingSound = document.getElementById('dingSound'); // عنصر الصوت
-    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -143,9 +121,6 @@
         li.classList.add('show');
       }, 10);
 
-      // إظهار التنبيه عند إضافة مادة جديدة
-      successToast.show();
-
       form.reset();
       form.classList.remove('was-validated');
     });
@@ -160,3 +135,7 @@
       toggleBtn.textContent =
         document.body.classList.contains('bg-dark') ? 'الوضع الفاتح' : 'الوضع الداكن';
     });
+  </script>
+
+</body>
+</html>
