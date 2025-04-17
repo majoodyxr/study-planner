@@ -7,11 +7,6 @@
   <title>منظّم وقت المذاكرة الذكي</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
-
-  <!-- ✅ Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
   <style>
     html, body {
       height: 100%;
@@ -27,7 +22,6 @@
 
     main {
       flex: 1;
-      display: none; /* سيتم إظهاره بعد تسجيل الدخول */
     }
 
     .card, .form-control, .btn, .list-group-item {
@@ -122,13 +116,6 @@
 </head>
 <body class="bg-light text-dark">
 
-  <!-- ✅ تسجيل الدخول -->
-  <div class="text-center my-4">
-    <h4>تسجيل الدخول</h4>
-    <button class="btn btn-outline-primary mb-2" onclick="loginWithGoogle()">الدخول باستخدام Google</button>
-    <button class="btn btn-outline-dark" onclick="loginWithApple()">الدخول باستخدام Apple</button>
-  </div>
-
   <main class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">منظّم وقت المذاكرة الذكي</h1>
@@ -164,63 +151,13 @@
   <audio id="dingSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
   <audio id="modeSwitchSound" src="https://www.soundjay.com/button/beep-01a.mp3" preload="auto"></audio>
 
+  <!-- ✅ زر الواتساب بعد التعديل -->
   <a href="https://wa.me/966591703860" target="_blank" class="whatsapp-btn">
     <span class="whatsapp-text">الدعم الفني</span>
     💬
   </a>
 
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBuwhL5DHDdi2Og_0OJVywv2oJamf4sabk",
-    authDomain: "study-project-18dde.firebaseapp.com",
-    projectId: "study-project-18dde",
-    storageBucket: "study-project-18dde.firebasestorage.app",
-    messagingSenderId: "439015167482",
-    appId: "1:439015167482:web:8d11c9d01c4f4830550043",
-    measurementId: "G-GXVL7ZH5EB"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-    // ✅ تسجيل الدخول باستخدام Google
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(result => {
-          alert(`مرحباً ${result.user.displayName}`);
-        })
-        .catch(error => alert(error.message));
-    }
-
-    // ✅ تسجيل الدخول باستخدام Apple
-    function loginWithApple() {
-      const provider = new firebase.auth.OAuthProvider('apple.com');
-      auth.signInWithPopup(provider)
-        .then(result => {
-          alert(`مرحباً ${result.user.displayName || 'مستخدم Apple'}`);
-        })
-        .catch(error => alert(error.message));
-    }
-
-    // ✅ إظهار الجدول بعد تسجيل الدخول
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.querySelector('main').style.display = 'block';
-      }
-    });
-
-    // بقية السكربت (نفس كودك السابق)
+  <script>
     const form = document.getElementById('studyForm');
     const scheduleList = document.getElementById('scheduleList');
     const subjectInput = document.getElementById('subject');
@@ -229,11 +166,13 @@
     const dingSound = document.getElementById('dingSound');
     const modeSwitchSound = document.getElementById('modeSwitchSound');
 
+    // تحميل المهام من localStorage
     window.addEventListener('DOMContentLoaded', () => {
       const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
       storedTasks.forEach(task => addTaskToDOM(task.subject, task.time, task.date));
     });
 
+    // حفظ المهام
     function saveTasks() {
       const tasks = [];
       document.querySelectorAll('#scheduleList li').forEach(li => {
@@ -245,8 +184,10 @@
       localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
+    // إضافة المهمة
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+
       if (!form.checkValidity()) {
         form.classList.add('was-validated');
         return;
@@ -254,8 +195,10 @@
 
       const subject = subjectInput.value.trim();
       let time = timeInput.value;
+
       const now = new Date();
       const date = now.toLocaleDateString('ar-EG');
+
       const [hours, minutes] = time.split(':');
       let hour = parseInt(hours);
       const ampm = hour >= 12 ? 'م' : 'ص';
@@ -287,6 +230,7 @@
         </div>
       `;
 
+      // حذف
       li.querySelector('.delete-btn').addEventListener('click', () => {
         li.classList.add('fade-out');
         setTimeout(() => {
@@ -295,6 +239,7 @@
         }, 400);
       });
 
+      // مكتملة
       li.querySelector('.done-btn').addEventListener('click', () => {
         li.querySelector('span').classList.toggle('completed');
       });
