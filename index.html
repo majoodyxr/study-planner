@@ -3,32 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>منظّم وقت المذاكرة الذكي</title>
   <link rel="icon" href="logo.png" type="image/png">
+  <title>منظّم وقت المذاكرة الذكي</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <!-- ✅ Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
       font-family: 'Tajawal', sans-serif;
     }
 
-    .login-section {
-      text-align: center;
-      padding: 50px 0;
+    body {
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.6s ease, color 0.6s ease;
     }
 
-    .hide {
+    main {
+      flex: 1;
+      display: none; /* سيتم إظهاره بعد تسجيل الدخول */
+    }
+
+    .card, .form-control, .btn, .list-group-item {
+      transition: background-color 0.4s ease, color 0.4s ease, border 0.4s ease;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .fade-in.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-out {
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .toggle-btn {
+      font-size: 0.9rem;
+      padding: 5px 10px;
+    }
+
+    .whatsapp-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background-color: #25D366;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      font-size: 1.5rem;
+      z-index: 1050;
+      transition: transform 0.3s ease;
+    }
+
+    .whatsapp-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .whatsapp-text {
       display: none;
+      font-size: 0.9rem;
+      margin-right: 10px;
+      white-space: nowrap;
     }
 
-    .btn-login {
-      font-size: 1.1rem;
-      margin: 10px;
+    .whatsapp-btn:hover .whatsapp-text {
+      display: block;
+    }
+
+    .bg-dark .form-control {
+      background-color: #555 !important;
+      color: #fff !important;
+      border-color: #777 !important;
+    }
+
+    .bg-dark .form-control:focus {
+      background-color: #777 !important;
+      border-color: #aaa !important;
+      color: #fff !important;
+    }
+
+    .bg-dark .list-group-item {
+      background-color: #333 !important;
+      color: #fff !important;
+      border-color: #444 !important;
+    }
+
+    .footer {
+      background-color: #f8f9fa;
+      color: #333;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .bg-dark .footer {
+      background-color: #222;
+      color: #aaa;
     }
 
     .completed {
@@ -39,13 +122,14 @@
 </head>
 <body class="bg-light text-dark">
 
-  <div class="container login-section" id="loginSection">
-    <h2>تسجيل الدخول إلى منظّم وقت المذاكرة</h2>
-    <button class="btn btn-outline-dark btn-login" onclick="signInWithGoogle()">تسجيل الدخول بـ Google</button>
-    <button class="btn btn-outline-secondary btn-login" onclick="signInWithApple()">تسجيل الدخول بـ Apple</button>
+  <!-- ✅ تسجيل الدخول -->
+  <div class="text-center my-4">
+    <h4>تسجيل الدخول</h4>
+    <button class="btn btn-outline-primary mb-2" onclick="loginWithGoogle()">الدخول باستخدام Google</button>
+    <button class="btn btn-outline-dark" onclick="loginWithApple()">الدخول باستخدام Apple</button>
   </div>
 
-  <main class="container py-5 hide" id="appSection">
+  <main class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">منظّم وقت المذاكرة الذكي</h1>
       <button id="toggleMode" class="btn btn-outline-secondary toggle-btn">الوضع الداكن</button>
@@ -77,61 +161,79 @@
     <small>© جميع الحقوق محفوظة لعبدالمجيد آل فايع</small>
   </footer>
 
+  <audio id="dingSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+  <audio id="modeSwitchSound" src="https://www.soundjay.com/button/beep-01a.mp3" preload="auto"></audio>
+
+  <a href="https://wa.me/966591703860" target="_blank" class="whatsapp-btn">
+    <span class="whatsapp-text">الدعم الفني</span>
+    💬
+  </a>
+
   <script>
-    // Firebase Config (مؤقتة)
+    // ✅ إعداد Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyD-temp-temp-temp-temp",
-      authDomain: "fake-study-app.firebaseapp.com",
-      projectId: "fake-study-app",
-      appId: "1:123456789:web:fake"
+      apiKey: "AIzaSyBuwhL5DHDdi2Og_0OJVywv2oJamf4sabk",
+      authDomain: "study-project-18dde.firebaseapp.com",
+      // أضف بقية البيانات إن أردت مثل projectId و appId
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // تسجيل الدخول
-    function signInWithGoogle() {
+    // ✅ تسجيل الدخول باستخدام Google
+    function loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then(result => {
-          showApp(result.user);
+          alert(`مرحباً ${result.user.displayName}`);
         })
-        .catch(error => {
-          alert("خطأ في تسجيل الدخول بـ Google: " + error.message);
-        });
+        .catch(error => alert(error.message));
     }
 
-    function signInWithApple() {
+    // ✅ تسجيل الدخول باستخدام Apple
+    function loginWithApple() {
       const provider = new firebase.auth.OAuthProvider('apple.com');
       auth.signInWithPopup(provider)
         .then(result => {
-          showApp(result.user);
+          alert(`مرحباً ${result.user.displayName || 'مستخدم Apple'}`);
         })
-        .catch(error => {
-          alert("خطأ في تسجيل الدخول بـ Apple: " + error.message);
-        });
+        .catch(error => alert(error.message));
     }
 
-    function showApp(user) {
-      document.getElementById('loginSection').classList.add('hide');
-      document.getElementById('appSection').classList.remove('hide');
-    }
-
-    // إذا المستخدم مسجل من قبل
+    // ✅ إظهار الجدول بعد تسجيل الدخول
     auth.onAuthStateChanged(user => {
-      if (user) showApp(user);
+      if (user) {
+        document.querySelector('main').style.display = 'block';
+      }
     });
 
-    // نظام المهام
+    // بقية السكربت (نفس كودك السابق)
     const form = document.getElementById('studyForm');
     const scheduleList = document.getElementById('scheduleList');
     const subjectInput = document.getElementById('subject');
     const timeInput = document.getElementById('time');
     const toggleBtn = document.getElementById('toggleMode');
+    const dingSound = document.getElementById('dingSound');
+    const modeSwitchSound = document.getElementById('modeSwitchSound');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      storedTasks.forEach(task => addTaskToDOM(task.subject, task.time, task.date));
+    });
+
+    function saveTasks() {
+      const tasks = [];
+      document.querySelectorAll('#scheduleList li').forEach(li => {
+        const subject = li.dataset.subject;
+        const time = li.dataset.time;
+        const date = li.dataset.date;
+        tasks.push({ subject, time, date });
+      });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-
       if (!form.checkValidity()) {
         form.classList.add('was-validated');
         return;
@@ -150,19 +252,22 @@
       addTaskToDOM(subject, time, date);
       saveTasks();
 
+      dingSound.play();
       form.reset();
       form.classList.remove('was-validated');
     });
 
     function addTaskToDOM(subject, time, date) {
       const li = document.createElement('li');
-      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.className = 'list-group-item d-flex justify-content-between align-items-center fade-in';
       li.dataset.subject = subject;
       li.dataset.time = time;
       li.dataset.date = date;
 
       li.innerHTML = `
-        <span><strong>${subject}</strong> - ${time} (${date})</span>
+        <span>
+          <strong>${subject}</strong> - ${time} (${date})
+        </span>
         <div>
           <button class="btn btn-sm btn-success me-2 done-btn">✓</button>
           <button class="btn btn-sm btn-danger delete-btn">حذف</button>
@@ -170,8 +275,11 @@
       `;
 
       li.querySelector('.delete-btn').addEventListener('click', () => {
-        li.remove();
-        saveTasks();
+        li.classList.add('fade-out');
+        setTimeout(() => {
+          li.remove();
+          saveTasks();
+        }, 400);
       });
 
       li.querySelector('.done-btn').addEventListener('click', () => {
@@ -179,32 +287,21 @@
       });
 
       scheduleList.appendChild(li);
+      setTimeout(() => {
+        li.classList.add('show');
+      }, 10);
     }
-
-    function saveTasks() {
-      const tasks = [];
-      document.querySelectorAll('#scheduleList li').forEach(li => {
-        tasks.push({
-          subject: li.dataset.subject,
-          time: li.dataset.time,
-          date: li.dataset.date
-        });
-      });
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const stored = JSON.parse(localStorage.getItem('tasks')) || [];
-      stored.forEach(task => addTaskToDOM(task.subject, task.time, task.date));
-    });
 
     toggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('bg-light');
       document.body.classList.toggle('bg-dark');
       document.body.classList.toggle('text-dark');
       document.body.classList.toggle('text-white');
+      modeSwitchSound.play();
       toggleBtn.textContent = document.body.classList.contains('bg-dark') ? 'الوضع الفاتح' : 'الوضع الداكن';
     });
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
